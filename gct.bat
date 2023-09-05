@@ -13,6 +13,10 @@
 setlocal enabledelayedexpansion
 
 echo [?25l
+
+:: This won't do anything for Terminal, but 120x25 is the default size anyway.
+:: The cls should have been covered by the mode con, but the refresh only
+:: triggers when the window actually resizes.
 mode con cols=120 lines=25
 cls
 
@@ -222,7 +226,7 @@ goto :market
 call :printHeader
 for /L %%A in (0,1,8) do (
     set /a row=%%A+5
-    echo [!row!;49H%%A. Commodity %%A: $!port_price[%%A][%location%]!
+    echo [!row!;49H%%A. Commodity %%A: $!port_price[%%A][%location%]!	[!cargo[%%A]!]
 )
 exit /b
 

@@ -14,6 +14,7 @@ setlocal enabledelayedexpansion
 
 echo [?25l
 mode con cols=120 lines=25
+cls
 
 call :varInit
 call :resetItemPrices
@@ -161,7 +162,7 @@ call :centerAndUnderline "DAILY COMMODITY  PRICE TRADER" 3
 
 for /L %%A in (0,1,8) do (
     set /a row=%%A+5
-    echo [!row!;29H^| Commodity #%%A
+    echo [!row!;30H Commodity #%%A
     call :bufferBuilder !base_price[%%A]!
     echo [!row!;!errorlevel!H $!base_price[%%A]!
 )
@@ -176,9 +177,9 @@ exit /b
 ::------------------------------------------------------------------------------
 :generateBorder
 cls
-echo [1;29H+------------------------------------------------------------+
-for /L %%A in (2,1,14) do echo [%%A;29H^|[%%A;90H^|
-echo [15;29H+------------------------------------------------------------+
+echo (0[1;29Hlqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk
+for /L %%A in (2,1,15) do echo [%%A;29Hx[%%A;90Hx
+echo [16;29Hmqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj(B
 exit /b
 
 ::------------------------------------------------------------------------------
@@ -215,10 +216,10 @@ exit /b !buffer_end!
 :market
 call :printHeader
 call :centerAndUnderline "MARKET" 3
-echo [5;38H 1. Check local prices
-echo [6;38H 2. Buy commodities
-echo [7;38H 3. Sell commodities
-echo [8;38H 4. Leave the market
+echo [5;48H 1. Check local prices
+echo [6;48H 2. Buy commodities
+echo [7;48H 3. Sell commodities
+echo [8;48H 4. Leave the market
 choice /c:1234 /N >nul
 
 if "%errorlevel%"=="1" call :showPrices & pause
@@ -236,7 +237,10 @@ goto :market
 ::------------------------------------------------------------------------------
 :showPrices
 call :printHeader
-for /L %%A in (0,1,8) do echo %%A. Commodity %%A: $!port_price[%location%][%%A]!
+for /L %%A in (0,1,8) do (
+    set /a row=%%A+5
+    echo [!row!;49H%%A. Commodity %%A: $!port_price[%location%][%%A]!
+)
 exit /b
 
 ::------------------------------------------------------------------------------

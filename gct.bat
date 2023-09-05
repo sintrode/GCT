@@ -179,14 +179,8 @@ exit /b
 :: Returns:   The row index where the buffer ends
 ::------------------------------------------------------------------------------
 :bufferBuilder
-set "buffer_length=44"
-:: This would be much more elegant if I could use log10()
-if %~1 GEQ 10 set /a buffer_length-=1
-if %~1 GEQ 100 set /a buffer_length-=1
-if %~1 GEQ 1000 set /a buffer_length-=1
-if %~1 GEQ 10000 set /a buffer_length-=1
-if %~1 GEQ 100000 set /a buffer_length-=1
-if %~1 GEQ 1000000 set /a buffer_length-=1
+call :strLen "%~1"
+set /a buffer_length=44-!errorlevel!
 
 set "buffer="
 for /L %%A in (1,1,!buffer_length!) do set "buffer=!buffer!."

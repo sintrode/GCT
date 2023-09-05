@@ -222,7 +222,7 @@ echo [7;48H 3. Sell commodities
 echo [8;48H 4. Leave the market
 choice /c:1234 /N >nul
 
-if "%errorlevel%"=="1" call :showPrices & pause
+if "%errorlevel%"=="1" call :viewPortPrices & pause
 if "%errorlevel%"=="2" call :transaction "-"
 if "%errorlevel%"=="3" call :transaction "+"
 if "%errorlevel%"=="4" exit /b 0
@@ -235,7 +235,7 @@ goto :market
 :: Arguments: None
 :: Returns:   None
 ::------------------------------------------------------------------------------
-:showPrices
+:viewPortPrices
 call :printHeader
 for /L %%A in (0,1,8) do (
     set /a row=%%A+5
@@ -260,15 +260,20 @@ if "%~1"=="-" (
     set "item_operator=-"
 )
 
-call :showPrices
-echo N. Leave
-echo.
-choice /c:012345678N /M "Either %transaction_verb% something or leave: " /N
+call :viewPortPrices
+echo [14;49HN. Leave
+echo [16;29HEither %transaction_verb% something or leave: 
+choice /c:012345678N >nul
 if "%errorlevel%"=="10" exit /b
 set /a item_index=%errorlevel% - 1
 
 :transactionLoop
-set /p "quantity=How many of this item do you want to %transaction_verb%? "
+if "%~1"=="-" (
+    set /a max_quantity=!money!/!port_price[%location%][%item_index%]!
+) else (
+    set /a max_quantity=!cargo[%item_index%]!
+)
+set /p "quantity=[17;29HHow many of this item do you want to %transaction_verb%? [Max: !max_quantity!] "
 call :verifyPositiveInteger "%quantity%"
 if "%errorlevel%"=="1" (
     echo Invalid number. Please enter a positive integer.

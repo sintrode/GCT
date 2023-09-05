@@ -85,7 +85,7 @@ exit /b
 ::------------------------------------------------------------------------------
 :: Takes a tuple containing commodity base price data and a tuple containing
 :: port price variation and merges the two to create an element in the
-:: port/commodity 2D array.
+:: port/commodity 2D array in the format !port_price[commodity][port]!.
 ::
 :: Arguments: %1 - Base price data in the format "commodity_index min max"
 ::            %2 - Port price data in the format "port_index price_offset"
@@ -131,8 +131,7 @@ exit /b
 ::------------------------------------------------------------------------------
 :mainMenu
 call :printHeader
-echo [3;48HGENERIC COMMODITY TRADER
-echo [4;48H------------------------
+call :centerAndUnderline "GENERIC COMMODITY TRADER" 3
 echo [5;48H 1. Check base prices
 echo [6;48H 2. Go to the market
 echo [7;48H 3. Check inventory
@@ -158,7 +157,7 @@ goto :mainMenu
 ::------------------------------------------------------------------------------
 :viewBasePrices
 call :generateBorder
-echo [3;46HDAILY COMMODITY  PRICE TRADER
+call :centerAndUnderline "DAILY COMMODITY  PRICE TRADER" 3
 
 for /L %%A in (0,1,8) do (
     set /a row=%%A+5
@@ -215,8 +214,7 @@ exit /b !buffer_end!
 ::------------------------------------------------------------------------------
 :market
 call :printHeader
-echo [3;47HMARKET
-echo [4;47H------
+call :centerAndUnderline "MARKET" 3
 echo [5;38H 1. Check local prices
 echo [6;38H 2. Buy commodities
 echo [7;38H 3. Sell commodities
@@ -335,8 +333,7 @@ exit /b %transaction_ok%
 ::------------------------------------------------------------------------------
 :inventory
 call :generateBorder
-echo [3;55HINVENTORY
-echo [4;55H---------
+call :centerAndUnderline "INVENTORY" 3
 
 for /L %%A in (0,1,8) do (
     set /a row=%%A+5
@@ -355,9 +352,11 @@ exit /b
 ::------------------------------------------------------------------------------
 :relocate
 call :printHeader
-echo [3;50HTRAVEL TO A NEW PORT
-echo [4;50H--------------------
-for /L %%A in (0,1,8) do echo %%A. Port %%A
+call :centerAndUnderline "TRAVEL TO A NEW PORT" 3
+for /L %%A in (0,1,8) do (
+    set /a row=%%A+5
+    echo [!row!;55H%%A. Port %%A
+)
 choice /C:012345678 /N >nul
 
 set /a new_location=%errorlevel%-1, travel_distance=new_location-location
@@ -398,3 +397,32 @@ exit /b %win_game%
 echo After reaching $2^^31, you have acquired all possible money.
 pause
 exit /b
+
+::------------------------------------------------------------------------------
+:: Centers a string and draws a line of dashes underneath it
+::
+:: Arguments: %1 - The string to center and underline
+::            %2 - The row to place the string on
+:: Returns:   None
+::------------------------------------------------------------------------------
+:centerAndUnderline
+call :strLen "%~1"
+set /a center_col=(120-!errorlevel!)/2
+echo [%~2;!center_col!H[4m%~1[0m
+exit /b
+
+::------------------------------------------------------------------------------
+:: Gets the length of a string
+::
+:: Arguments: %1 - The string to calculate the length of
+:: Returns:   The 1-indexed length of the string
+:: Based on: https://www.dostips.com/DtTipsStringOperations.php#Function.strLen
+::------------------------------------------------------------------------------
+:strLen
+set "str=A%~1"
+set "len=0"
+for /L %%A in (12,-1,0) do (
+    set /a "len|=1<<%%A"
+    for %%B in (!len!) do if "!str:~%%B,1!"=="" set /a "len&=~1<<%%A"
+)
+exit /b !len!

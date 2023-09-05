@@ -57,29 +57,17 @@ exit /b
 ::------------------------------------------------------------------------------
 :resetItemPrices
 for %%A in (
-    "0   25    50"
-    "1   65   100"
-    "2  115   175"
-    "3  210   450"
-    "4  550  1000"
-    "5 1050  1300"
-    "6 2000  5000"
-    "7 5000  8500"
-    "8 8500 10000"
+    "0   25    50   20"
+    "1   65   100   50"
+    "2  115   175   30"
+    "3  210   450  120"
+    "4  550  1000  500"
+    "5 1050  1300  250"
+    "6 2000  5000 1500"
+    "7 5000  8500 2000"
+    "8 8500 10000 1500"
 ) do (
-    for %%B in (
-        "0   20"
-        "1   50"
-        "2   30"
-        "3  120"
-        "4  500"
-        "5  250"
-        "6 1500"
-        "7 2000"
-        "8 1500"
-    ) do (
-        call :generatePortPrices "%%~A" "%%~B"
-    )
+    call :generatePortPrices "%%~A"
 )
 exit /b
 
@@ -93,10 +81,12 @@ exit /b
 :: Returns:   None
 ::------------------------------------------------------------------------------
 :generatePortPrices
-for /f "tokens=1-5" %%C in ("%~1 %~2") do (
+for /f "tokens=1-4" %%C in ("%~1") do (
     set /a "base_price[%%C]=!RANDOM!%%(%%E-%%D+1)+%%D"
-    set /a "port_offset[%%C][%%F]=!RANDOM!%%(%%G*2)+%%G"
-    set /a "port_price[%%C][%%F]=!base_price[%%C]!+!port_offset[%%C][%%F]!"
+    for /L %%G in (0,1,8) do (
+        set /a "port_offset[%%C][%%G]=!RANDOM!%%(%%F*2)-%%F"
+        set /a "port_price[%%C][%%G]=!base_price[%%C]!+!port_offset[%%C][%%G]!"
+    )
 )
 exit /b
 
@@ -239,7 +229,7 @@ goto :market
 call :printHeader
 for /L %%A in (0,1,8) do (
     set /a row=%%A+5
-    echo [!row!;49H%%A. Commodity %%A: $!port_price[%location%][%%A]!
+    echo [!row!;49H%%A. Commodity %%A: $!port_price[%%A][%location%]!
 )
 exit /b
 
@@ -269,7 +259,7 @@ set /a item_index=%errorlevel% - 1
 
 :transactionLoop
 if "%~1"=="-" (
-    set /a max_quantity=!money!/!port_price[%location%][%item_index%]!
+    set /a max_quantity=!money!/!port_price[%item_index%][%location%]!
 ) else (
     set /a max_quantity=!cargo[%item_index%]!
 )
@@ -312,7 +302,7 @@ exit /b %is_int%
 ::------------------------------------------------------------------------------
 :buyValidation
 set "transaction_ok=0"
-set /a total_value=!port_price[%location%][%~1]! * %~2
+set /a total_value=!port_price[%~1][%location%]! * %~2
 if !total_value! GTR !money! set "transaction_ok=1"
 exit /b %transaction_ok%
 
@@ -330,7 +320,7 @@ set "total_value=0"
 if %~2 GTR !cargo[%~1]! (
     set "transaction_ok=1"
 ) else (
-    set total_value=!port_price[%location%][%~1]! * %~2
+    set total_value=!port_price[%~1][%location%]! * %~2
 )
 exit /b %transaction_ok%
 

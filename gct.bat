@@ -30,7 +30,7 @@ exit /b
 :: Returns:   None
 ::------------------------------------------------------------------------------
 :varInit
-set "location=1"
+set "location=0"
 for /L %%A in (0,1,8) do set "cargo[%%A]=0"
 set /a money=(%RANDOM% %% 3000) + 500
 set "in_game_day=1"
@@ -145,6 +145,9 @@ if "%errorlevel%"=="2" call :market
 if "%errorlevel%"=="3" call :inventory
 if "%errorlevel%"=="4" call :relocate
 if "%errorlevel%"=="5" exit /b
+
+:: An %errorlevel% of 6 means that the player won at the market
+if "%errorlevel%"=="6" goto :win
 goto :mainMenu
 
 ::------------------------------------------------------------------------------
@@ -208,6 +211,7 @@ exit /b !buffer_end!
 ::
 :: Arguments: None
 :: Returns:   0 to prevent previous menus from triggering
+::            5 if the player has won
 ::------------------------------------------------------------------------------
 :market
 call :printHeader
@@ -223,6 +227,7 @@ if "%errorlevel%"=="1" call :showPrices & pause
 if "%errorlevel%"=="2" call :transaction "-"
 if "%errorlevel%"=="3" call :transaction "+"
 if "%errorlevel%"=="4" exit /b 0
+call :checkWinCondition && exit /b 6
 goto :market
 
 ::------------------------------------------------------------------------------
@@ -368,4 +373,28 @@ if !in_game_hour! GEQ 24 (
 
 echo Travelling to port %new_location%
 timeout /t %travel_distance% >nul
+exit /b
+
+::------------------------------------------------------------------------------
+:: Check to see if the player has crossed the $MAX_INT threshold
+::
+:: Arguments: None
+:: Returns:   0 if the player is either exactly at MAX_INT or a negative value
+::            1 if the game is not done yet
+::------------------------------------------------------------------------------
+:checkWinCondition
+set "win_game=1"
+if %money% GEQ 2147483647 set "win_game=0"
+if %money% LSS 0 set "win_game=0"
+exit /b %win_game%
+
+::------------------------------------------------------------------------------
+:: Displays the "You Win" text
+::
+:: Arguments: None
+:: Returns:   None
+::------------------------------------------------------------------------------
+:win
+echo After reaching $2^^31, you have acquired all possible money.
+pause
 exit /b

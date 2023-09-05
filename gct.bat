@@ -184,7 +184,6 @@ set /a buffer_length=44-!errorlevel!
 
 set "buffer="
 for /L %%A in (1,1,!buffer_length!) do set "buffer=!buffer!."
-REM set "buffer=!buffer! $!base_price[%~1]!"
 
 echo [!row!;44H!buffer!
 set /a buffer_end=42+!buffer_length!
@@ -250,13 +249,13 @@ echo [16;29HEither %transaction_verb% something or leave:
 choice /c:012345678N >nul
 if "%errorlevel%"=="10" exit /b
 set /a item_index=%errorlevel% - 1
-
-:transactionLoop
 if "%~1"=="-" (
     set /a max_quantity=!money!/!port_price[%item_index%][%location%]!
 ) else (
     set /a max_quantity=!cargo[%item_index%]!
 )
+
+:transactionLoop
 set /p "quantity=[17;29HHow many of this item do you want to %transaction_verb%? [Max: !max_quantity!] "
 call :verifyPositiveInteger "%quantity%"
 if "%errorlevel%"=="1" (
@@ -387,6 +386,7 @@ exit /b %win_game%
 :: Returns:   None
 ::------------------------------------------------------------------------------
 :win
+cls
 echo After reaching $2^^31, you have acquired all possible money.
 pause
 exit /b
